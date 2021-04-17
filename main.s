@@ -30,8 +30,7 @@ unreset:
 	ldr r1, =RESETS_CTRL
 	ldr r0, [r1]
 	ldr r2, =(RESETS_PADS_BANK0 | RESETS_IO_BANK0)
-	mvn r3, r2
-	and r0, r0, r3
+	bic r0, r0, r2
 	str r0, [r1]
 	
 unreset_check_loop:
@@ -40,7 +39,7 @@ unreset_check_loop:
 	tst r0, r2
 	beq unreset_check_loop
 	
-after_unreset:
+configure:
 	// configure our GPIO pin to be driven by SIO
 	ldr r0, =FUNCTION_SIO
 	ldr r1, =GPIO0_CTRL
@@ -56,6 +55,7 @@ after_unreset:
 	ldr r1, =GPIO_OE_SET
 	str r0, [r1]
 	
+blink:
 	// write to the pin via SIO
 	ldr r3, =0xffffffff // all pins high
 loop:
