@@ -3,6 +3,7 @@
 .set RESETS_BASE, (APB_BASE + 0xc000)
 .set RESETS_CTRL, (RESETS_BASE + 0x0)
 .set RESETS_PADS_BANK0, (1 << 8)
+.set RESETS_IO_BANK0, (1 << 5)
 .set RESETS_DONE, (RESETS_BASE + 0x8)
 
 .set IO_BANK0_BASE, (APB_BASE + 0x14000)
@@ -24,26 +25,27 @@
 .globl main
 .thumb_func
 main:
-	// take RESETS_RESET_PADS_BANK0 out of reset
+unreset:
+	// take RESETS_PADS_BANK0 and RESETS_IO_BANK0 out of reset
 	ldr r1, =RESETS_CTRL
 	ldr r0, [r1]
-	ldr r2, =RESETS_PADS_BANK0
-	neg r3, r2
+	ldr r2, =(RESETS_PADS_BANK0 | RESETS_IO_BANK0)
+	mvn r3, r2
 	and r0, r0, r3
 	str r0, [r1]
 	
 unreset_check_loop:
 	ldr r1, =RESETS_DONE
 	ldr r0, [r1]
-	tst r0, r3
+	tst r0, r2
 	beq unreset_check_loop
-
+	
 after_unreset:
-	// we first have to configure our GPIO pin to be driven by SIO
+	// configure our GPIO pin to be driven by SIO
 	ldr r0, =FUNCTION_SIO
 	ldr r1, =GPIO0_CTRL
 	str r0, [r1]
-
+	
 	// configure pad options, too
 	ldr r0, =0x0
 	ldr r1, =PADS_GPIO0
@@ -53,10 +55,20 @@ after_unreset:
 	ldr r0, =0xffffffff
 	ldr r1, =GPIO_OE_SET
 	str r0, [r1]
-
-// now we should be able to write to the pin via SIO
+	
+	// write to the pin via SIO
+	ldr r3, =0xffffffff // all pins high
 loop:
-	ldr r0, =0xffffffff // all pins high
 	ldr r1, =GPIO_OUT
-	str r0, [r1]
+	str r3, [r1]
+	mvn r3, r3
+	
+sleep:
+	ldr r0, =0
+	ldr r1, =0x100000
+wait:
+	add r0, r0, #1
+	cmp r0, r1
+	blo wait
+	
 	b loop
