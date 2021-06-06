@@ -1,9 +1,7 @@
-BINUTILS=/Users/matt/Downloads/gcc-arm-none-eabi-10-2020-q4-major/arm-none-eabi/bin/
-PAD_CHECKSUM=/Users/matt/src/pico-sdk/src/rp2_common/boot_stage2/pad_checksum
-
-AS=${BINUTILS}/as
-LD=${BINUTILS}/ld
-OBJCOPY=${BINUTILS}/objcopy
+AS=arm-eabi-as
+LD=arm-eabi-ld
+OBJCOPY=arm-eabi-objcopy
+PAD_CHECKSUM=../pico-sdk/src/rp2_common/boot_stage2/pad_checksum
 
 .PHONY: all clean
 
